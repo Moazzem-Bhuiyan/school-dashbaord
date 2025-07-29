@@ -28,7 +28,7 @@ export default function PostCard({ post }) {
               items: [
                 {
                   key: '1',
-                  label: 'Delete',
+                  label: <h1 className="text-red-500">Delete</h1>,
                   onClick: () => {
                     toast.success('Post deleted successfully');
                   },

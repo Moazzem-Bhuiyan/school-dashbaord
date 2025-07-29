@@ -2,7 +2,7 @@
 
 import { ArrowLeft } from 'lucide-react';
 
-import { Avatar, Button, Image } from 'antd';
+import { Avatar, Image } from 'antd';
 import { useState } from 'react';
 
 export default function PostDetailsPage() {

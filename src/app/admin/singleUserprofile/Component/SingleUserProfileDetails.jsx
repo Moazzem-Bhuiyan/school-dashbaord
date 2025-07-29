@@ -85,7 +85,7 @@ export default function SingleUserProfileDetails() {
 
       {/* Right Side - User Posts */}
       <div className="flex-1 p-6">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-800">User Posts</h2>
             <div className="flex items-center space-x-2 text-sm text-gray-500">

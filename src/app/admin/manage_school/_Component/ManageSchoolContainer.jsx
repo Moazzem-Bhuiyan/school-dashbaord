@@ -4,17 +4,17 @@ import { Button, Table, Tooltip } from 'antd';
 import { PlusCircle, Trash } from 'lucide-react';
 import { useState } from 'react';
 import CustomConfirm from '@/components/CustomConfirm/CustomConfirm';
-import CreateCategoryModal from './CreateCategoryModal';
-import EditCategoryModal from './EditCategoryModal';
+import AddSchoolModal from './AddSchoolModal';
 
 // Dummy table data
 const data = Array.from({ length: 5 }).map((_, inx) => ({
   key: inx + 1,
   name: 'Wood',
   createdAt: '11 oct 24, 11.10PM',
+  districtname: 'Feni',
 }));
 
-export default function CategoryContainer() {
+export default function ManageSchoolContainer() {
   const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
   const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
 
@@ -26,8 +26,17 @@ export default function CategoryContainer() {
       render: (value) => `#${value}`,
     },
     {
-      title: 'Category Name',
+      title: 'School Name',
       dataIndex: 'name',
+      render: (value) => (
+        <div className="flex-center-start gap-x-2">
+          <p className="font-medium">{value}</p>
+        </div>
+      ),
+    },
+    {
+      title: 'District  Name',
+      dataIndex: 'districtname',
       render: (value) => (
         <div className="flex-center-start gap-x-2">
           <p className="font-medium">{value}</p>
@@ -49,8 +58,8 @@ export default function CategoryContainer() {
         <div className="flex justify-start gap-x-3">
           <Tooltip title="Delete">
             <CustomConfirm
-              title="Delete This category"
-              description="Are you sure to delete this category?"
+              title="Delete This School"
+              description="Are you sure to delete this school?"
               onConfirm={() => handleDelete(record?._id)}
             >
               <button>
@@ -74,7 +83,7 @@ export default function CategoryContainer() {
         style={{ backgroundColor: '#2474A6' }}
         onClick={() => setShowCreateCategoryModal(true)}
       >
-        Create Category
+        Add School
       </Button>
       <Table
         style={{ overflowX: 'auto', marginTop: '30px' }}
@@ -92,10 +101,10 @@ export default function CategoryContainer() {
       ></Table>
 
       {/* Create Category Modal */}
-      <CreateCategoryModal open={showCreateCategoryModal} setOpen={setShowCreateCategoryModal} />
+      <AddSchoolModal open={showCreateCategoryModal} setOpen={setShowCreateCategoryModal} />
 
       {/* Edit category modal */}
-      <EditCategoryModal open={showEditCategoryModal} setOpen={setShowEditCategoryModal} />
+      {/* <EditCategoryModal open={showEditCategoryModal} setOpen={setShowEditCategoryModal} /> */}
     </div>
   );
 }

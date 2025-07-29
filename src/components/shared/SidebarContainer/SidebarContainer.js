@@ -4,14 +4,18 @@ import './Sidebar.css';
 import logo from '@/assets/logos/logo.png';
 import { Menu } from 'antd';
 import Sider from 'antd/es/layout/Sider';
-import { ScrollText } from 'lucide-react';
-import { LogOut } from 'lucide-react';
-import { CircleUser } from 'lucide-react';
-import { House } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import user from '@/assets/icon/account.svg';
+import category from '@/assets/icon/category.svg';
+import dash from '@/assets/icon/Group.svg';
+import faUser from '@/assets/icon/fauser.svg';
+import school from '@/assets/icon/school.svg';
+import privecy from '@/assets/icon/Vector (2).svg';
+import logout from '@/assets/icon/logout.svg';
+import approved from '@/assets/icon/approved.svg';
 
 const SidebarContainer = ({ collapsed }) => {
   // const dispatch = useDispatch();
@@ -39,49 +43,64 @@ const SidebarContainer = ({ collapsed }) => {
     superAdmin: [
       {
         key: 'dashboard',
-        icon: <House size={21} strokeWidth={2} />,
+        icon: <Image src={dash} width={21} height={21} alt="" />,
         label: <Link href={'/admin/dashboard'}>Dashboard</Link>,
       },
       {
         key: 'account-details',
-        icon: <CircleUser size={21} strokeWidth={2} />,
+        icon: <Image src={user} width={21} height={21} alt="" />,
         label: <Link href={'/admin/account-details'}>Accounts Details</Link>,
       },
       {
         key: 'Manage-Principal',
-        icon: <CircleUser size={21} strokeWidth={2} />,
+        icon: <Image src={faUser} width={23} height={23} className="mt-2" alt="" />,
         label: <Link href={'/admin/manage_Principal'}>Manage Principal</Link>,
       },
       {
+        key: 'Manage-school',
+        icon: <Image src={school} width={21} height={21} alt="" />,
+        label: <Link href={'/admin/manage_school'}>Manage-School</Link>,
+      },
+      {
+        key: 'Manage-category',
+        icon: <Image src={category} width={21} height={21} alt="" />,
+        label: <Link href={'/admin/category'}>Manage-Category</Link>,
+      },
+      {
+        key: 'Manage-District',
+        icon: <Image src={category} width={21} height={21} alt="" />,
+        label: <Link href={'/admin/manage_District'}>Manage District</Link>,
+      },
+      {
         key: 'privacy-policy',
-        icon: <ScrollText size={21} strokeWidth={2} />,
+        icon: <Image src={privecy} width={21} height={21} alt="" />,
         label: <Link href="/admin/privacy-policy">Privacy Policy</Link>,
       },
       {
         key: 'logout',
-        icon: <LogOut size={21} strokeWidth={2} />,
+        icon: <Image src={logout} width={21} height={21} alt="" />,
         label: <Link href="/login">Logout</Link>,
       },
     ],
     principle: [
       {
         key: 'dashboard',
-        icon: <House size={21} strokeWidth={2} />,
+        icon: <Image src={dash} width={21} height={21} alt="" />,
         label: <Link href={'/admin/dashboard'}>Dashboard</Link>,
       },
       {
         key: 'account-details',
-        icon: <CircleUser size={21} strokeWidth={2} />,
+        icon: <Image src={user} width={21} height={21} alt="" />,
         label: <Link href={'/admin/account-details'}>Accounts Details</Link>,
       },
       {
         key: 'Approve-system',
-        icon: <CircleUser size={21} strokeWidth={2} />,
+        icon: <Image src={approved} width={21} height={21} alt="" />,
         label: <Link href={'/admin/approve_post'}>Approve system</Link>,
       },
       {
         key: 'logout',
-        icon: <LogOut size={21} strokeWidth={2} />,
+        icon: <Image src={logout} width={21} height={21} alt="" />,
         label: <Link href="/login">Logout</Link>,
       },
     ],

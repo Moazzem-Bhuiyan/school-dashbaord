@@ -1,52 +1,52 @@
-"use client";
+'use client';
 
-import { Input, Table } from "antd";
-import { Tooltip } from "antd";
-import { ConfigProvider } from "antd";
-import { Search } from "lucide-react";
-import userImage from "@/assets/images/user-avatar-lg.png";
-import { Eye } from "lucide-react";
-import { UserX } from "lucide-react";
-import { useState } from "react";
-import { Filter } from "lucide-react";
-import Image from "next/image";
-import CustomConfirm from "@/components/CustomConfirm/CustomConfirm";
-import { message } from "antd";
-import ProfileModal from "@/components/SharedModals/ProfileModal";
-import { Tag } from "antd";
-import { useRouter } from "next/navigation";
+import { Input, Table } from 'antd';
+import { Tooltip } from 'antd';
+import { ConfigProvider } from 'antd';
+import { Search } from 'lucide-react';
+import userImage from '@/assets/images/user-avatar-lg.png';
+import { Eye } from 'lucide-react';
+import { UserX } from 'lucide-react';
+import { useState } from 'react';
+import { Filter } from 'lucide-react';
+import Image from 'next/image';
+import CustomConfirm from '@/components/CustomConfirm/CustomConfirm';
+import { message } from 'antd';
+import ProfileModal from '@/components/SharedModals/ProfileModal';
+import { Tag } from 'antd';
+import { useRouter } from 'next/navigation';
 
 // Dummy table Data
 const data = Array.from({ length: 50 }).map((_, inx) => ({
   key: inx + 1,
-  name: "Robert Fox",
+  name: 'Robert Fox',
   userImg: userImage,
-  email: "justina@gmail.com",
-  contact: "+1234567890",
-  date: "11 oct 24, 11.10PM",
-  status: "Joined",
+  email: 'justina@gmail.com',
+  contact: '+1234567890',
+  date: '11 oct 24, 11.10PM',
+  status: 'Joined',
 }));
 
 export default function AccDetailsTable() {
-  const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] = useState('');
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const router = useRouter();
 
   // Block user handler
   const handleBlockUser = () => {
-    message.success("User blocked successfully");
+    message.success('User blocked successfully');
   };
 
   // ================== Table Columns ================
   const columns = [
     {
-      title: "Serial",
-      dataIndex: "key",
+      title: 'Serial',
+      dataIndex: 'key',
       render: (value) => `#${value}`,
     },
     {
-      title: "Name",
-      dataIndex: "name",
+      title: 'Name',
+      dataIndex: 'name',
       render: (value, record) => (
         <div className="flex-center-start gap-x-2">
           <Image
@@ -61,34 +61,30 @@ export default function AccDetailsTable() {
       ),
     },
     {
-      title: "Email",
-      dataIndex: "email",
+      title: 'Email',
+      dataIndex: 'email',
     },
 
     {
-      title: "Date",
-      dataIndex: "date",
+      title: 'Date',
+      dataIndex: 'date',
     },
     {
-      title: "Status",
-      dataIndex: "status",
+      title: 'Status',
+      dataIndex: 'status',
 
       filters: [
         {
-          text: "Joined",
-          value: "Joined",
+          text: 'Joined',
+          value: 'Joined',
         },
         {
-          text: "Service Provider",
-          value: "serviceProvider",
+          text: 'Service Provider',
+          value: 'serviceProvider',
         },
       ],
       filterIcon: () => (
-        <Filter
-          size={18}
-          color="#fff"
-          className="flex justify-start items-start"
-        />
+        <Filter size={18} color="#fff" className="flex justify-start items-start" />
       ),
       onFilter: (value, record) => record.accountType.indexOf(value) === 0,
       render: (value) => (
@@ -98,13 +94,15 @@ export default function AccDetailsTable() {
       ),
     },
     {
-      title: "Action",
+      title: 'Action',
       render: () => (
         <div className="flex-center-start gap-x-3">
           <Tooltip title="Show Details">
-            <button onClick={() => {
-              router.push("/admin/singleUserprofile");
-            }}>
+            <button
+              onClick={() => {
+                router.push('/admin/singleUserprofile');
+              }}
+            >
               <Eye color="#1B70A6" size={22} />
             </button>
           </Tooltip>
@@ -129,9 +127,9 @@ export default function AccDetailsTable() {
     <ConfigProvider
       theme={{
         token: {
-          colorPrimary: "#1B70A6",
-          colorInfo: "#1B70A6",
-           borderRadius: 12,
+          colorPrimary: '#1B70A6',
+          colorInfo: '#1B70A6',
+          borderRadius: 12,
         },
       }}
     >
@@ -145,10 +143,10 @@ export default function AccDetailsTable() {
       </div>
 
       <Table
-        style={{ overflowX: "auto" }}
+        style={{ overflowX: 'auto' }}
         columns={columns}
         dataSource={data}
-        scroll={{ x: "100%" }}
+        scroll={{ x: '100%' }}
       ></Table>
     </ConfigProvider>
   );

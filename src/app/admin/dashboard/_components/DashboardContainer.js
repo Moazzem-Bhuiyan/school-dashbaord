@@ -1,28 +1,28 @@
-"use client";
-import RecentUserTable from "./RecentUserTable";
-import CustomCountUp from "@/components/CustomCountUp/CustomCountUp";
-import EarningSummary from "./Earnings";
-import RecentOrderTable from "./RecentOrderTable";
-import { LineChart, NotebookPen } from "lucide-react";
-import UserStatistics from "./UserChart";
+'use client';
+import RecentUserTable from './RecentUserTable';
+import CustomCountUp from '@/components/CustomCountUp/CustomCountUp';
+import EarningSummary from './Earnings';
+import RecentOrderTable from './RecentOrderTable';
+import { LineChart, NotebookPen } from 'lucide-react';
+import UserStatistics from './UserChart';
 
 // Dummy Data
 const userStats = [
   {
-    key: "available",
-    title: "Available",
+    key: 'available',
+    title: 'Available',
     count: 518,
     icon: <NotebookPen className="text-[#5CB5EE] w-16 h-16" />,
   },
   {
-    key: "Grabbed",
-    title: "Grabbed",
+    key: 'Grabbed',
+    title: 'Grabbed',
     icon: <NotebookPen className="text-[#52AA77] w-16 h-16" />,
     count: 118,
   },
   {
-    key: "Overall",
-    title: "Overall",
+    key: 'Overall',
+    title: 'Overall',
     icon: <NotebookPen className="text-orange-500 w-16 h-16" />,
     count: 1500,
   },
@@ -30,7 +30,7 @@ const userStats = [
 
 export default function DashboardContainer() {
   return (
-    <div className="space-y-20">
+    <div className="space-y-10">
       {/* User Stats Section */}
       <section className="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-3 gap-5">
         {userStats?.map((stat) => (
@@ -46,7 +46,7 @@ export default function DashboardContainer() {
                 </div>
                 <div>
                   <h5 className="text-4xl font-semibold text-black mt-0.5">
-                    {stat.key !== "earning" ? (
+                    {stat.key !== 'earning' ? (
                       <CustomCountUp end={stat.count} />
                     ) : (
                       <span>
@@ -56,9 +56,10 @@ export default function DashboardContainer() {
                   </h5>
                 </div>
               </div>
-              
             </div>
-             <h1 className="text-sm text-gray-500">There are many passages of Lorem Ipsum available.</h1>
+            <h1 className="text-sm text-gray-500">
+              There are many passages of Lorem Ipsum available.
+            </h1>
           </div>
         ))}
       </section>

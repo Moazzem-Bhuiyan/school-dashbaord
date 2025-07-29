@@ -3,6 +3,8 @@
 import { Image } from 'antd';
 
 export default function UserAccount() {
+  // const role = localStorage.getItem('role');
+
   const userData = {
     firstName: 'Alyse',
     lastName: 'Roe',
@@ -78,13 +80,13 @@ export default function UserAccount() {
           <h3 className="text-base font-medium text-gray-800">{userData.schoolName}</h3>
         </div>
       </div>
-      {localStorage.getItem('role') === 'principle' && (
+      {/* {role === 'principle' && (
         <div className="flex justify-center mt-8">
           <button className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded w-full">
             Remove Account
           </button>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

@@ -40,7 +40,7 @@ export default function AdminLayout({ children }) {
             maxHeight: '100vh',
             overflow: 'auto',
             backgroundColor: '#F5F5F5',
-            paddingInline: '70px',
+            paddingInline: '30px',
             paddingTop: '50px',
             paddingBottom: '50px',
           }}
