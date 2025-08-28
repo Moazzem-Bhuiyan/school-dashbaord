@@ -1,17 +1,39 @@
 'use client';
 
+import { useGetUserByIdQuery } from '@/redux/api/userApi';
 import { Image } from 'antd';
+import { useSearchParams } from 'next/navigation';
+import { DNA } from 'react-loader-spinner';
 
 export default function UserAccount() {
-  // const role = localStorage.getItem('role');
+  // get user id from search params
+  const searchParams = useSearchParams();
+  const userId = searchParams?.get('id');
 
+  //  get single user data from api using userId
+  const { data: teacherdata, isLoading } = useGetUserByIdQuery(userId, { skip: !userId });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-6 rounded-xl bg-white shadow-lg min-h-screen min-w-[400px]">
+        <DNA
+          visible={true}
+          height="80"
+          width="80"
+          ariaLabel="dna-loading"
+          wrapperStyle={{}}
+          wrapperClass="dna-wrapper"
+        />
+      </div>
+    );
+  }
+  const teacher = teacherdata?.data?.teacher?.user || {};
   const userData = {
-    firstName: 'Alyse',
-    lastName: 'Roe',
-    email: 'jessica.hanson@example.com',
-    roomNumber: 'B-3',
-    districtCode: '124456',
-    schoolName: 'SES-Smith',
+    firstName: teacher?.name || 'N/A',
+    email: teacher?.email || 'N/A',
+    roomNumber: teacher?.roomNumber || 'N/A',
+    districtCode: teacher?.district?.code || 'N/A',
+    schoolName: teacher?.school?.name || 'N/A',
   };
 
   return (
@@ -25,7 +47,7 @@ export default function UserAccount() {
         <div className="relative inline-block">
           <div className="w-40 h-40 rounded-full border-4 border-blue-200 overflow-hidden  bg-gray-100 shadow-lg">
             <Image
-              src="/user-avatar-lg.png"
+              src={teacher?.image || '/placeholder.svg'}
               alt="User Avatar"
               width={1200}
               height={1200}
@@ -33,23 +55,15 @@ export default function UserAccount() {
             />
           </div>
         </div>
-        1
       </div>
 
       {/* Static Info Fields */}
       <div className="space-y-5">
         <div>
           <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
-            First Name
+            Name
           </label>
           <h3 className="text-base font-medium text-gray-800">{userData.firstName}</h3>
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
-            Last Name
-          </label>
-          <h3 className="text-base font-medium text-gray-800">{userData.lastName}</h3>
         </div>
 
         <div>

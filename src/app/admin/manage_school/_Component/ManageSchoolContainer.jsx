@@ -5,18 +5,41 @@ import { PlusCircle, Trash } from 'lucide-react';
 import { useState } from 'react';
 import CustomConfirm from '@/components/CustomConfirm/CustomConfirm';
 import AddSchoolModal from './AddSchoolModal';
-
-// Dummy table data
-const data = Array.from({ length: 5 }).map((_, inx) => ({
-  key: inx + 1,
-  name: 'Wood',
-  createdAt: '11 oct 24, 11.10PM',
-  districtname: 'Feni',
-}));
+import { useDeleteSchoolMutation, useGetAllSchoolsQuery } from '@/redux/api/schoolApi';
+import moment from 'moment';
+import toast from 'react-hot-toast';
 
 export default function ManageSchoolContainer() {
   const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
-  const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // get all schools
+  const { data: schoolsData, isLoading } = useGetAllSchoolsQuery();
+
+  // Dummy table data
+  const data = schoolsData?.data?.data?.map((item, inx) => ({
+    key: inx + 1,
+    name: item?.name,
+    createdAt: moment(item?.createdAt).format('ll'),
+    districtname: item?.district?.name,
+    type: item?.type,
+    id: item?._id,
+    districtcode: item?.district?.code,
+  }));
+
+  // school delete api
+  const [deleteSchool] = useDeleteSchoolMutation();
+
+  const handleDelete = async (id) => {
+    try {
+      const res = await deleteSchool(id).unwrap();
+      if (res?.success) {
+        toast.success(res?.message || 'School deleted successfully');
+      }
+    } catch (error) {
+      toast.error(error?.data?.message || 'Failed to delete school');
+    }
+  };
 
   // ================== Table Columns ================
   const columns = [
@@ -44,6 +67,15 @@ export default function ManageSchoolContainer() {
       ),
     },
     {
+      title: 'District Code',
+      dataIndex: 'districtcode',
+      render: (value) => (
+        <div className="flex-center-start gap-x-2">
+          <p className="font-medium">{value}</p>
+        </div>
+      ),
+    },
+    {
       title: 'Created At',
       dataIndex: 'createdAt',
       render: (value, record) => (
@@ -60,7 +92,7 @@ export default function ManageSchoolContainer() {
             <CustomConfirm
               title="Delete This School"
               description="Are you sure to delete this school?"
-              onConfirm={() => handleDelete(record?._id)}
+              onConfirm={() => handleDelete(record?.id)}
             >
               <button>
                 <Trash color="#F16365" size={22} />
@@ -90,14 +122,15 @@ export default function ManageSchoolContainer() {
         columns={columns}
         dataSource={data}
         scroll={{ x: '100%' }}
-        // loading={isLoading}
-        // pagination={{
-        //   current: currentPage,
-        //   onChange: (page) => setCurrentPage(page),
-        //   pageSize: 10,
-        //   total: jobTitle?.meta?.total,
-        //   showTotal: (total) => `Total ${total} categories`,
-        // }}
+        bordered
+        loading={isLoading}
+        pagination={{
+          current: currentPage,
+          onChange: (page) => setCurrentPage(page),
+          pageSize: 10,
+          total: schoolsData?.meta?.total,
+          showTotal: (total) => `Total ${total} categories`,
+        }}
       ></Table>
 
       {/* Create Category Modal */}

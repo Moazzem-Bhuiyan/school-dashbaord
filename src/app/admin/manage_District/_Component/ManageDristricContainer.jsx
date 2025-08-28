@@ -1,26 +1,49 @@
 'use client';
 import CustomConfirm from '@/components/CustomConfirm/CustomConfirm';
-import { Button, Table, Tooltip } from 'antd';
-import { Edit, PlusCircle, Trash } from 'lucide-react';
+import { Button, Table, Tag, Tooltip } from 'antd';
+import { Edit, Filter, PlusCircle, Trash } from 'lucide-react';
 import Image from 'next/image';
 import React, { useState } from 'react';
 import AddDistricModal from './AddDistricModal';
 import EditDistricModal from './EditDristicModal';
-
-// Dummy table data
-const data = Array.from({ length: 5 }).map((_, inx) => ({
-  key: inx + 1,
-  name: 'Wood',
-  createdAt: '11 oct 24, 11.10PM',
-  logoImage: '/camera.png',
-  districtname: 'Feni',
-  districtcode: '39000',
-  type: 'Strict',
-}));
+import { useDeleteDistrictMutation, useGetDistrictsQuery } from '@/redux/api/districts';
+import moment from 'moment';
+import toast from 'react-hot-toast';
 
 const ManageDristricContainer = () => {
   const [open, setOpen] = useState(false);
   const [editopen, setEditOpen] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // get dristric data from api
+  const { data: dristric, isLoading } = useGetDistrictsQuery();
+
+  // Dummy table data
+  const data = dristric?.data?.data.map((item, inx) => ({
+    key: inx + 1,
+    name: item?.name,
+    createdAt: moment(item?.createdAt).format('ll'),
+    logoImage: item?.logo,
+    districtcode: item?.code,
+    type: item?.type,
+    id: item?._id,
+  }));
+
+  // delete dristric api handeler
+  const [deleteDristric] = useDeleteDistrictMutation();
+
+  const handleDelete = async (id) => {
+    try {
+      const res = await deleteDristric(id).unwrap();
+      if (res?.success) {
+        toast.success(res?.message || 'Dristric deleted successfully');
+      }
+    } catch (error) {
+      toast.error(error?.data?.message || 'Failed to delete dristric');
+    }
+  };
+
   // ================== Table Columns ================
   const columns = [
     {
@@ -45,7 +68,7 @@ const ManageDristricContainer = () => {
     },
     {
       title: 'District Name',
-      dataIndex: 'districtname',
+      dataIndex: 'name',
     },
     {
       title: 'District Code',
@@ -54,6 +77,31 @@ const ManageDristricContainer = () => {
     {
       title: 'Type',
       dataIndex: 'type',
+      filters: [
+        {
+          text: 'Strict',
+          value: 'strict',
+        },
+        {
+          text: 'Non-Strict',
+          value: 'non-strict',
+        },
+      ],
+      filterIcon: () => (
+        <Filter size={18} color="#fff" className="flex justify-start items-start" />
+      ),
+      onFilter: (value, record) => record.type.indexOf(value) === 0,
+      render: (value) => (
+        <Tag
+          className={
+            value === 'strict'
+              ? ' !text-sm font-bold !bg-red-500 border !text-white'
+              : '!text-sm font-bold !bg-green-500 border !text-white'
+          }
+        >
+          {value === 'strict' ? 'Strict' : 'Non-Strict'}
+        </Tag>
+      ),
     },
     {
       title: 'Created At',
@@ -69,7 +117,12 @@ const ManageDristricContainer = () => {
       render: (_, record) => (
         <div className="flex justify-start gap-x-3">
           <Tooltip title="Edit">
-            <button onClick={() => setEditOpen(true)}>
+            <button
+              onClick={() => {
+                setEditOpen(true);
+                setEditId(record);
+              }}
+            >
               <Edit color="#1B70A6" size={22} />
             </button>
           </Tooltip>
@@ -78,7 +131,7 @@ const ManageDristricContainer = () => {
             <CustomConfirm
               title="Delete This district"
               description="Are you sure to delete this district?"
-              onConfirm={() => handleDelete(record?._id)}
+              onConfirm={() => handleDelete(record?.id)}
             >
               <button>
                 <Trash color="#F16365" size={22} />
@@ -107,18 +160,19 @@ const ManageDristricContainer = () => {
         style={{ overflowX: 'auto', marginTop: '30px' }}
         columns={columns}
         dataSource={data}
+        bordered
         scroll={{ x: '100%' }}
-        // loading={isLoading}
-        // pagination={{
-        //   current: currentPage,
-        //   onChange: (page) => setCurrentPage(page),
-        //   pageSize: 10,
-        //   total: jobTitle?.meta?.total,
-        //   showTotal: (total) => `Total ${total} categories`,
-        // }}
+        loading={isLoading}
+        pagination={{
+          current: currentPage,
+          onChange: (page) => setCurrentPage(page),
+          pageSize: 10,
+          total: dristric?.meta?.total,
+          showTotal: (total) => `Total ${total} dristric`,
+        }}
       ></Table>
       <AddDistricModal isModalOpen={open} setIsModalOpen={setOpen} />
-      <EditDistricModal isModalOpen={editopen} setIsModalOpen={setEditOpen} />
+      <EditDistricModal editInfo={editId} isModalOpen={editopen} setIsModalOpen={setEditOpen} />
     </div>
   );
 };

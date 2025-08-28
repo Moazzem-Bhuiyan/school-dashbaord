@@ -1,33 +1,67 @@
 'use client';
-import { Button, Divider, Form, Input, InputNumber, Select, Upload } from 'antd';
-import TextArea from 'antd/es/input/TextArea';
+import { Button, Divider, Form, Input, Select, Upload } from 'antd';
 import Modal from 'antd/es/modal/Modal';
 import { UploadOutlined } from '@ant-design/icons';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useUpdateDistrictMutation } from '@/redux/api/districts';
+import toast from 'react-hot-toast';
 
-const EditDistricModal = ({ isModalOpen, setIsModalOpen }) => {
+const EditDistricModal = ({ isModalOpen, setIsModalOpen, editInfo }) => {
   const [form] = Form.useForm();
 
-  const handleSubmit = (values) => {
-    console.log('Form Values:', values);
-    setIsModalOpen(false);
-    form.resetFields();
+  useEffect(() => {
+    if (!editInfo) return;
+    form.setFieldsValue({
+      name: editInfo?.name,
+      type: editInfo?.type,
+      code: editInfo?.districtcode,
+      bannerImage: editInfo?.logoImage
+        ? [
+            {
+              uid: '-1',
+              name: 'logo.png',
+              status: 'done',
+              url: editInfo.logoImage,
+            },
+          ]
+        : [],
+    });
+  }, [editInfo, form]);
+
+  // update district api handler
+  const [update, { isLoading }] = useUpdateDistrictMutation();
+
+  const handleSubmit = async (values) => {
+    try {
+      const formData = new FormData();
+      formData.append(
+        'payload',
+        JSON.stringify({
+          name: values.name,
+          type: values.type,
+          code: values.code,
+        })
+      );
+      formData.append('logo', values.bannerImage[0].originFileObj);
+      const res = await update({ id: editInfo?.id, formData }).unwrap();
+      if (res.success) {
+        toast.success('District updated successfully');
+      }
+      setIsModalOpen(false);
+      form.resetFields();
+    } catch (error) {
+      toast.error(error?.data?.message || 'Failed to update district');
+    }
   };
+
   return (
     <div>
       <Modal centered open={isModalOpen} onCancel={() => setIsModalOpen(false)} footer={null}>
         <div className="pb-5">
-          <h4 className="text-center text-2xl font-medium">Edit Distric Details</h4>
+          <h4 className="text-center text-2xl font-medium">Edit District Details</h4>
           <Divider />
           <div className="flex-1">
-            <Form
-              form={form}
-              onFinish={handleSubmit}
-              layout="vertical"
-              initialValues={{
-                category: '',
-              }}
-            >
+            <Form form={form} onFinish={handleSubmit} layout="vertical">
               {/* Image Upload */}
               <Form.Item
                 name="bannerImage"
@@ -35,7 +69,7 @@ const EditDistricModal = ({ isModalOpen, setIsModalOpen }) => {
                 getValueFromEvent={(e) => (Array.isArray(e) ? e : e && e.fileList)}
                 rules={[
                   {
-                    required: true,
+                    required: !editInfo?.logoImage,
                     message: 'Please upload a logo image',
                   },
                 ]}
@@ -46,14 +80,31 @@ const EditDistricModal = ({ isModalOpen, setIsModalOpen }) => {
                   borderRadius: '10px',
                 }}
               >
-                <Upload name="imageBanner" listType="picture" beforeUpload={(file) => false}>
-                  <Button icon={<UploadOutlined />}>Upload Distric logo</Button>
+                <Upload
+                  name="imageBanner"
+                  listType="picture"
+                  maxCount={1}
+                  beforeUpload={(file) => false}
+                  defaultFileList={
+                    editInfo?.logoImage
+                      ? [
+                          {
+                            uid: '-1',
+                            name: 'logo.png',
+                            status: 'done',
+                            url: editInfo?.logoImage,
+                          },
+                        ]
+                      : []
+                  }
+                >
+                  <Button icon={<UploadOutlined />}>Upload District Logo</Button>
                 </Upload>
               </Form.Item>
 
-              {/* District Name Name */}
+              {/* District Name */}
               <Form.Item
-                name="DistrictName"
+                name="name"
                 label="District Name"
                 rules={[
                   {
@@ -65,9 +116,9 @@ const EditDistricModal = ({ isModalOpen, setIsModalOpen }) => {
                 <Input placeholder="Enter District Name" />
               </Form.Item>
 
-              {/* Banner Link */}
+              {/* District Code */}
               <Form.Item
-                name="District-Code"
+                name="code"
                 label="District Code"
                 rules={[
                   {
@@ -76,15 +127,10 @@ const EditDistricModal = ({ isModalOpen, setIsModalOpen }) => {
                   },
                 ]}
               >
-                <InputNumber
-                  style={{ width: '100%' }}
-                  max={100}
-                  min={1}
-                  placeholder="Enter banner link"
-                />
+                <Input style={{ width: '100%' }} placeholder="Enter District Code" />
               </Form.Item>
 
-              {/* type */}
+              {/* District Type */}
               <Form.Item
                 name="type"
                 label="Type"
@@ -96,8 +142,8 @@ const EditDistricModal = ({ isModalOpen, setIsModalOpen }) => {
                 ]}
               >
                 <Select placeholder="Select type">
-                  <Select.Option value="1">Strict</Select.Option>
-                  <Select.Option value="2">Non-Strict</Select.Option>
+                  <Select.Option value="strict">Strict</Select.Option>
+                  <Select.Option value="non-strict">Non-Strict</Select.Option>
                 </Select>
               </Form.Item>
 
@@ -106,7 +152,8 @@ const EditDistricModal = ({ isModalOpen, setIsModalOpen }) => {
                 htmlType="submit"
                 size="large"
                 block
-                // loading={isLoading}
+                loading={isLoading}
+                disabled={isLoading}
                 style={{
                   backgroundColor: '#0059A4',
                   color: 'white',

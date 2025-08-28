@@ -1,15 +1,34 @@
 'use client';
-import { Button, Divider, Form, Input, Modal } from 'antd';
+import { Button, Divider, Form, Input, Modal, Select } from 'antd';
 import { RiCloseLargeLine } from 'react-icons/ri';
-import { useState } from 'react';
+import { useCreatePrincipleMutation } from '@/redux/api/principleApi';
+import { useGetDistrictsQuery } from '@/redux/api/districts';
+import toast from 'react-hot-toast';
 
 const AddPricipalModal = ({ open, setOpen }) => {
   const [form] = Form.useForm();
 
-  const handleSubmit = (values) => {
-    console.log('Form Values:', values);
-    setOpen(false);
-    form.resetFields();
+  //  ----------------add principal api handler============
+  const [create, { isLoading }] = useCreatePrincipleMutation();
+
+  // ================get drsict list from api===============
+  const { data: districts } = useGetDistrictsQuery();
+  const districtOptions = districts?.data?.data.map((district) => ({
+    label: district.name,
+    value: district._id,
+  }));
+
+  const handleSubmit = async (values) => {
+    try {
+      const res = await create(values).unwrap();
+      if (res.success) {
+        toast.success('Principal added successfully');
+        setOpen(false);
+        form.resetFields();
+      }
+    } catch (error) {
+      toast.error(error?.data?.message || 'Failed to add principal');
+    }
   };
 
   return (
@@ -40,19 +59,11 @@ const AddPricipalModal = ({ open, setOpen }) => {
             style={{ maxWidth: 500, marginTop: '25px' }}
           >
             <Form.Item
-              label="First name"
-              name="firstName"
-              rules={[{ required: true, message: 'Please enter first name' }]}
+              label=" Name"
+              name="name"
+              rules={[{ required: true, message: 'Please enter  name' }]}
             >
               <Input placeholder="Enter first name" className="rounded-full py-2" />
-            </Form.Item>
-
-            <Form.Item
-              label="Last name"
-              name="lastName"
-              rules={[{ required: true, message: 'Please enter last name' }]}
-            >
-              <Input placeholder="Enter last name" className="rounded-full py-2" />
             </Form.Item>
 
             <Form.Item
@@ -63,25 +74,20 @@ const AddPricipalModal = ({ open, setOpen }) => {
               <Input placeholder="Enter email" className="rounded-full py-2" />
             </Form.Item>
 
-            <Form.Item
-              label="District"
-              name="district"
-              rules={[{ required: true, message: 'Please enter district' }]}
-            >
-              <Input placeholder="Enter district" className="rounded-full py-2" />
-            </Form.Item>
-
-            <Form.Item
-              label="Location"
-              name="location"
-              rules={[{ required: true, message: 'Please enter location' }]}
-            >
-              <Input placeholder="Enter location" className="rounded-full py-2" />
+            <Form.Item label="District" name="district" rules={[{ required: true }]}>
+              <Select
+                mode="single"
+                style={{ width: '100%' }}
+                placeholder="District"
+                className="rounded-full py-2"
+                options={districtOptions}
+              ></Select>
             </Form.Item>
 
             <Form.Item>
               <Button
                 htmlType="submit"
+                loading={isLoading}
                 size="large"
                 block
                 style={{ backgroundColor: '#2474A6', color: 'white', borderRadius: '999px' }}

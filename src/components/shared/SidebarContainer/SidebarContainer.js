@@ -7,40 +7,48 @@ import Sider from 'antd/es/layout/Sider';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import user from '@/assets/icon/account.svg';
 import category from '@/assets/icon/category.svg';
 import dash from '@/assets/icon/Group.svg';
 import faUser from '@/assets/icon/fauser.svg';
 import school from '@/assets/icon/school.svg';
 import privecy from '@/assets/icon/Vector (2).svg';
-import logout from '@/assets/icon/logout.svg';
+import logoutbtn from '@/assets/icon/logout.svg';
 import approved from '@/assets/icon/approved.svg';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout, selectToken } from '@/redux/features/authSlice';
+import { jwtDecode } from 'jwt-decode';
+import toast from 'react-hot-toast';
 
 const SidebarContainer = ({ collapsed }) => {
-  // const dispatch = useDispatch();
-  const router = useRouter();
-  const [role, setRole] = useState(null);
-  useEffect(() => {
-    const storedRole = localStorage.getItem('role');
-    setRole(storedRole);
-  }, []);
+  const dispatch = useDispatch();
+  const router = useRouter(); 
+  const token = useSelector(selectToken);
+  const storedRole = token ? jwtDecode(token) : null; // Handle null token
+  const [role, setRole] = useState(storedRole);
 
-  // Logout handler
-  const onClick = (e) => {
-    // if (e.key === "logout") {
-    //   dispatch(logout());
-    //   router.refresh();
-    //   router.push("/login");
-
-    //   Success_model({ title: "Logout successful" });
-    // }
-
-    console.log('logout success');
+  // Updated Logout Handler
+  const onClick = async (e) => {
+    if (e.key === 'logout') {
+      try {
+        // Dispatch logout action
+        dispatch(logout());
+        // Show toast notification
+        toast.success('Logout successful');
+        // Delay navigation to ensure state updates
+        setTimeout(() => {
+          router.push('/login'); // Navigate to login page
+        }, 100); // Small delay to allow toast and state update
+      } catch (error) {
+        console.error('Logout error:', error);
+        toast.error('Logout failed');
+      }
+    }
   };
 
   const navLinks = {
-    superAdmin: [
+    Admin: [
       {
         key: 'dashboard',
         icon: <Image src={dash} width={21} height={21} alt="" />,
@@ -78,11 +86,11 @@ const SidebarContainer = ({ collapsed }) => {
       },
       {
         key: 'logout',
-        icon: <Image src={logout} width={21} height={21} alt="" />,
+        icon: <Image src={logoutbtn} width={21} height={21} alt="" />,
         label: <Link href="/login">Logout</Link>,
       },
     ],
-    principle: [
+    Principal: [
       {
         key: 'dashboard',
         icon: <Image src={dash} width={21} height={21} alt="" />,
@@ -100,13 +108,13 @@ const SidebarContainer = ({ collapsed }) => {
       },
       {
         key: 'logout',
-        icon: <Image src={logout} width={21} height={21} alt="" />,
+        icon: <Image src={logoutbtn} width={21} height={21} alt="" />,
         label: <Link href="/login">Logout</Link>,
       },
     ],
   };
 
-  const links = navLinks[role];
+  const links = navLinks[role?.role] || [];
 
   // Get current path for sidebar menu item `key`
   const currentPathname = usePathname()?.replace('/admin/', '')?.split(' ')[0];
@@ -130,7 +138,6 @@ const SidebarContainer = ({ collapsed }) => {
       <div className="mb-6 flex flex-col justify-center items-center gap-y-5">
         <Link href={'/'}>
           {collapsed ? (
-            // Logo small
             <Image src={logo} alt="Logo Of Before After Story" className="h-4 w-auto" />
           ) : (
             <Image src={logo} alt="Logo Of Before After Story" className="h-[200px] w-auto" />

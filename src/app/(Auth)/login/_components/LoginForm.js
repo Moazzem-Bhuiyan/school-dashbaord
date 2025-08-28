@@ -8,18 +8,42 @@ import UInput from '@/components/Form/UInput';
 
 import { Button } from 'antd';
 import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
+import { useSignInMutation } from '@/redux/api/authApi';
+import { setUser } from '@/redux/features/authSlice';
+import toast from 'react-hot-toast';
+import { jwtDecode } from 'jwt-decode';
 
 export default function LoginForm() {
   const router = useRouter();
+  const dispatch = useDispatch();
+  const [signin, { isLoading }] = useSignInMutation();
 
-  const onLoginSubmit = (data) => {
-    if (data.email === 'admin@gmail.com') {
-      localStorage.setItem('role', 'superAdmin');
+  const onLoginSubmit = async (data) => {
+    try {
+      const res = await signin(data).unwrap();
+
+      if (res?.data?.accessToken) {
+        const decodedToken = jwtDecode(res.data.accessToken);
+        const userRole = decodedToken?.role;
+        if (userRole !== 'Admin' && userRole !== 'Principal') {
+          toast.error('You are not authorized to access this site');
+          return;
+        }
+        // On successful login and role check
+        toast.success('Login successful');
+        dispatch(
+          setUser({
+            token: res?.data?.accessToken,
+          })
+        );
+        router.push('/admin/dashboard');
+      } else {
+        toast.error(res?.message || 'Login failed: No access token received');
+      }
+    } catch (error) {
+      toast.error(error?.data?.message || 'Failed to login');
     }
-    if (data.email === 'pricipal@gmail.com') {
-      localStorage.setItem('role', 'principle');
-    }
-    router.push('/admin/dashboard');
   };
 
   return (
@@ -57,6 +81,7 @@ export default function LoginForm() {
           className="w-full !font-semibold !h-10"
           block
           style={{ backgroundColor: '#2474A6' }}
+          loading={isLoading}
         >
           Log In
         </Button>

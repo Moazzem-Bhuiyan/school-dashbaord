@@ -1,34 +1,47 @@
 'use client';
 import RecentUserTable from './RecentUserTable';
 import CustomCountUp from '@/components/CustomCountUp/CustomCountUp';
-import EarningSummary from './Earnings';
-import RecentOrderTable from './RecentOrderTable';
-import { LineChart, NotebookPen } from 'lucide-react';
+import { NotebookPen } from 'lucide-react';
 import UserStatistics from './UserChart';
-
-// Dummy Data
-const userStats = [
-  {
-    key: 'available',
-    title: 'Available',
-    count: 518,
-    icon: <NotebookPen className="text-[#5CB5EE] w-16 h-16" />,
-  },
-  {
-    key: 'Grabbed',
-    title: 'Grabbed',
-    icon: <NotebookPen className="text-[#52AA77] w-16 h-16" />,
-    count: 118,
-  },
-  {
-    key: 'Overall',
-    title: 'Overall',
-    icon: <NotebookPen className="text-orange-500 w-16 h-16" />,
-    count: 1500,
-  },
-];
+import { useGetDashboardDataQuery } from '@/redux/api/dashboardApi';
+import { useSelector } from 'react-redux';
+import { selectToken } from '@/redux/features/authSlice';
+import { useState } from 'react';
 
 export default function DashboardContainer() {
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const token = useSelector(selectToken);
+
+  // Fetch dashboard data, passing the currentYear
+  const { data, isLoading, isError } = useGetDashboardDataQuery({ currentYear }, { skip: !token });
+
+  const stats = data?.data || {};
+  // stats Data
+  const userStats = [
+    {
+      key: 'available',
+      title: 'Available',
+      count: stats?.availableAssets || 0,
+      icon: <NotebookPen className="text-[#5CB5EE] w-16 h-16" />,
+    },
+    {
+      key: 'Grabbed',
+      title: 'Grabbed',
+      icon: <NotebookPen className="text-[#52AA77] w-16 h-16" />,
+      count: stats?.grabbedAssets || 0,
+    },
+    {
+      key: 'Overall',
+      title: 'Overall',
+      icon: <NotebookPen className="text-orange-500 w-16 h-16" />,
+      count: stats?.allAssets || 0,
+    },
+  ];
+
+  const handleYearChange = (year) => {
+    setCurrentYear(year);
+  };
+
   return (
     <div className="space-y-10">
       {/* User Stats Section */}
@@ -66,7 +79,11 @@ export default function DashboardContainer() {
 
       {/* Charts */}
       <section className="flex-center-between xl:flex-row flex-col gap-10">
-        <UserStatistics />
+        <UserStatistics
+          userStats={stats?.fullStats}
+          isLoading={isLoading}
+          onYearChange={handleYearChange}
+        />
       </section>
 
       {/* Recent Users Table */}

@@ -2,6 +2,8 @@ import localFont from 'next/font/local';
 import { DM_Sans } from 'next/font/google';
 import './globals.css';
 import Providers from '../lib/Providers';
+import ReduxProviders from '@/redux/lib/ReduxProvider';
+import { AntdRegistry } from '@ant-design/nextjs-registry';
 
 const generalSans = localFont({
   src: '../assets/fonts/GeneralSans-Variable.woff2',
@@ -37,7 +39,11 @@ export default function RootLayout({ children }) {
       </head>
 
       <body className={`${generalSans.className} ${dmSans.variable} box-border antialiased`}>
-        <Providers>{children}</Providers>
+        <AntdRegistry>
+          <ReduxProviders>
+            <Providers>{children}</Providers>
+          </ReduxProviders>
+        </AntdRegistry>
       </body>
     </html>
   );

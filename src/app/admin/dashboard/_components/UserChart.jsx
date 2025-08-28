@@ -1,6 +1,7 @@
 'use client';
 
 import { DatePicker } from 'antd';
+import moment from 'moment';
 import { useState } from 'react';
 import {
   LineChart,
@@ -12,41 +13,41 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-const data = [
-  { month: 'JAN', users: 1 },
-  { month: 'FEB', users: 3 },
-  { month: 'MAR', users: 1.5 },
-  { month: 'APR', users: 6.5 },
-  { month: 'MAY', users: 7.5 },
-  { month: 'JUN', users: 4 },
-  { month: 'JUL', users: 1 },
-  { month: 'Aug', users: 7.5 },
-  { month: 'Sep', users: 2 },
-  { month: 'Oct', users: 1 },
-  { month: 'Nov', users: 3 },
-  { month: 'Dec', users: 3.5 },
-];
-
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-black text-white px-3 py-2 rounded-full text-sm font-medium">
-        {Math.round(payload[0].value * 5)} users
+        {Math.round(payload[0].value)} users
       </div>
     );
   }
   return null;
 };
 
-export default function UserStatistics() {
-  const [selectedYear, setSelectedYear] = useState('Year');
+export default function UserStatistics({ userStats, onYearChange }) {
+  console.log('🚀 ~ UserStatistics ~ userStats:', userStats);
+  const [selectedYear, setSelectedYear] = useState(null);
+
+  const data = userStats?.map((item) => ({ month: item.month, users: item.users })) || [];
+
+  const handleChange = (date, dateString) => {
+    // Date string will contain the selected year
+    setSelectedYear(dateString);
+    onYearChange(dateString);
+  };
 
   return (
     <div className="w-full max-w-8xl mx-auto p-6 bg-white rounded-lg shadow-lg">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl font-semibold text-gray-900">Users statistic</h2>
         <div>
-          <DatePicker picker="year" />
+          <DatePicker
+            value={selectedYear ? moment(selectedYear, 'YYYY') : null}
+            onChange={handleChange}
+            picker="year"
+            placeholder="Select Year"
+            style={{ width: 120 }}
+          />
         </div>
       </div>
 

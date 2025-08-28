@@ -1,40 +1,56 @@
 'use client';
 
-import { Input, Table } from 'antd';
+import { Image, Input, Table } from 'antd';
 import { Tooltip } from 'antd';
 import { ConfigProvider } from 'antd';
 import { Search } from 'lucide-react';
-import userImage from '@/assets/images/user-avatar-lg.png';
 import { Eye } from 'lucide-react';
 import { UserX } from 'lucide-react';
 import { useState } from 'react';
 import { Filter } from 'lucide-react';
-import Image from 'next/image';
 import CustomConfirm from '@/components/CustomConfirm/CustomConfirm';
 import { message } from 'antd';
 import ProfileModal from '@/components/SharedModals/ProfileModal';
 import { Tag } from 'antd';
 import { useRouter } from 'next/navigation';
-
-// Dummy table Data
-const data = Array.from({ length: 50 }).map((_, inx) => ({
-  key: inx + 1,
-  name: 'Robert Fox',
-  userImg: userImage,
-  email: 'justina@gmail.com',
-  contact: '+1234567890',
-  date: '11 oct 24, 11.10PM',
-  status: 'Active',
-}));
-
+import { useGetPrinciplesQuery } from '@/redux/api/principleApi';
+import moment from 'moment';
+import { useBlockUnblockUserMutation } from '@/redux/api/userApi';
+import toast from 'react-hot-toast';
 export default function PrincipalTable() {
   const [searchText, setSearchText] = useState('');
   const [profileModalOpen, setProfileModalOpen] = useState(false);
-  const router = useRouter();
+  const [selectedPrincipal, setSelectedPrincipal] = useState(null);
+
+  // get all principals from api
+  const { data: principals, isLoading } = useGetPrinciplesQuery();
+  const principalsData = principals?.data?.data || [];
+
+  // Dummy table Data
+  const data = principalsData?.map((items, inx) => ({
+    key: inx + 1,
+    name: items?.user?.name,
+    id: items?._id,
+    userImg: items?.user?.image,
+    email: items?.user?.email,
+    district: items?.user?.district?.name || 'N/A',
+    date: moment(items?.createdAt).format('LL'),
+    status: items?.isBlocked === true ? 'Blocked' : 'Active',
+  }));
+
+  // change status api call
+  const [blockUnblockUser] = useBlockUnblockUserMutation();
 
   // Block user handler
-  const handleBlockUser = () => {
-    message.success('User blocked successfully');
+  const handleBlockUser = async (id) => {
+    try {
+      const res = await blockUnblockUser(id).unwrap();
+      if (res?.success) {
+        toast.success(res?.message || 'User status changed successfully');
+      }
+    } catch (error) {
+      toast.error(error?.data?.message || 'Failed to change user status');
+    }
   };
 
   // ================== Table Columns ================
@@ -43,18 +59,38 @@ export default function PrincipalTable() {
     {
       title: 'Name',
       dataIndex: 'name',
-      render: (value, record) => (
-        <div className="flex-center-start gap-x-2">
-          <Image
-            src={record.userImg}
-            alt="User avatar"
-            width={1200}
-            height={1200}
-            className="rounded-full w-10 h-auto aspect-square"
-          />
-          <p className="font-medium">{value}</p>
-        </div>
-      ),
+      render: (value, record) => {
+        // Helper function to validate URL
+        const isValidUrl = (url) => {
+          if (!url) return false;
+          return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
+        };
+
+        // Get the first letter of the name (uppercase)
+        const firstLetter = value ? value.charAt(0).toUpperCase() : '';
+
+        // Determine if the image is valid
+        const hasValidImage = isValidUrl(record?.userImg);
+
+        return (
+          <div className="flex-center-start gap-x-2">
+            {hasValidImage ? (
+              <Image
+                src={record?.userImg}
+                alt="User avatar"
+                width={40}
+                height={40}
+                className="rounded-full w-10 h-auto aspect-square"
+              />
+            ) : (
+              <div className="flex items-center justify-center rounded-full w-10 h-10 bg-[#67cccc] text-white text-lg font-medium">
+                {firstLetter}
+              </div>
+            )}
+            <p className="font-medium">{value}</p>
+          </div>
+        );
+      },
     },
     { title: 'Email', dataIndex: 'email' },
 
@@ -70,21 +106,25 @@ export default function PrincipalTable() {
       filterIcon: () => (
         <Filter size={18} color="#fff" className="flex justify-start items-start" />
       ),
-      onFilter: (value, record) => record.accountType.indexOf(value) === 0,
+      onFilter: (value, record) => record.status.indexOf(value) === 0,
       render: (value) => (
-        <Tag color="cyan" className="!text-sm">
+        <Tag
+          color="cyan"
+          className={`!text-base font-semibold ${value === 'Blocked' ? '!text-red-500' : ''}`}
+        >
           {value}
         </Tag>
       ),
     },
     {
       title: 'Action',
-      render: () => (
+      render: (_, record) => (
         <div className="flex-center-start gap-x-3">
           <Tooltip title="Show Details">
             <button
               onClick={() => {
                 setProfileModalOpen(true);
+                setSelectedPrincipal(record);
               }}
             >
               <Eye color="#1B70A6" size={22} />
@@ -93,12 +133,18 @@ export default function PrincipalTable() {
 
           <Tooltip title="Block User">
             <CustomConfirm
-              title="Block User"
-              description="Are you sure to block this user?"
-              onConfirm={handleBlockUser}
+              title={record.status === 'Blocked' ? 'Unblock User' : 'Block User'}
+              description={`Are you sure to ${record.status === 'Blocked' ? 'Unblock' : 'Block'} this user?`}
+              onConfirm={() => {
+                handleBlockUser(record.id);
+              }}
             >
               <button>
-                <UserX color="#F16365" size={22} />
+                {record.status === 'Blocked' ? (
+                  <UserX color="#F16365" size={22} />
+                ) : (
+                  <UserX color="#1B70A6" size={22} />
+                )}
               </button>
             </CustomConfirm>
           </Tooltip>
@@ -124,10 +170,16 @@ export default function PrincipalTable() {
         style={{ overflowX: 'auto' }}
         columns={columns}
         dataSource={data}
+        loading={isLoading}
+        bordered
         scroll={{ x: '100%' }}
       ></Table>
 
-      <ProfileModal open={profileModalOpen} setOpen={setProfileModalOpen} />
+      <ProfileModal
+        open={profileModalOpen}
+        setOpen={setProfileModalOpen}
+        selectedPrincipal={selectedPrincipal}
+      />
     </ConfigProvider>
   );
 }

@@ -1,10 +1,12 @@
 'use client';
 
 import { Dropdown, Image } from 'antd';
+import moment from 'moment';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
-export default function PostCard({ post }) {
+export default function PostCard({ post, user, userId }) {
+  console.log('single post------------------------------->', post);
   const router = useRouter();
   return (
     <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
@@ -13,13 +15,13 @@ export default function PostCard({ post }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Image
-              src="/user-avatar-lg.png"
-              alt={post.user.name}
+              src={user?.image || '/placeholder.svg'}
+              alt={user?.name}
               className="!w-10 !h-10 rounded-full border-2 border-gray-200"
             />
             <div>
-              <h4 className="font-semibold text-gray-800">{post.user.name}</h4>
-              <p className="text-xs text-gray-500">{post.date}</p>
+              <h4 className="font-semibold text-gray-800">{user?.name || 'N/A'}</h4>
+              <p className="text-xs text-gray-500">{moment(post?.createdAt).format('lll')}</p>
             </div>
           </div>
           <Dropdown
@@ -47,15 +49,15 @@ export default function PostCard({ post }) {
 
       {/* Post Content */}
       <div className="p-4">
-        <h3 className="text-lg font-bold text-gray-800 mb-2">{post.title}</h3>
-        <p className="text-gray-600 text-sm leading-relaxed mb-4">{post.content}</p>
+        <h3 className="text-lg font-bold text-gray-800 mb-2">{post?.name}</h3>
+        <p className="text-gray-600 text-sm leading-relaxed mb-4">{post?.description}</p>
 
         {/* Post Image */}
         <div className="relative overflow-hidden rounded-lg mb-4 group">
           <Image
-            src="/postImage.png"
+            src={post?.images[0]}
             alt={post.title}
-            className="w-full h-48 object-fit transition-transform duration-300 group-hover:scale-105"
+            className="w-full !h-48 object-fit transition-transform duration-300 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"></div>
         </div>
@@ -66,17 +68,17 @@ export default function PostCard({ post }) {
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
               <span className="text-gray-500">Quantity</span>
-              <span className="font-semibold text-gray-800 ml-auto">{post.details.quantity}</span>
+              <span className="font-semibold text-gray-800 ml-auto">{post?.quantity}</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               <span className="text-gray-500">Material</span>
-              <span className="font-semibold text-gray-800 ml-auto">{post.details.material}</span>
+              <span className="font-semibold text-gray-800 ml-auto">{post?.material}</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
               <span className="text-gray-500">School</span>
-              <span className="font-semibold text-gray-800 ml-auto">{post.details.school}</span>
+              <span className="font-semibold text-gray-800 ml-auto">as</span>
             </div>
           </div>
         </div>
@@ -85,7 +87,7 @@ export default function PostCard({ post }) {
         <div className="flex items-center justify-between">
           <button
             onClick={() => {
-              router.push(`/admin/singleUserprofile/postDetails`);
+              router.push(`/admin/singleUserprofile/postDetails?id=${userId}&postId=${post?._id}`);
             }}
             className="bg-[#5CB5EE] w-full text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors duration-300"
           >

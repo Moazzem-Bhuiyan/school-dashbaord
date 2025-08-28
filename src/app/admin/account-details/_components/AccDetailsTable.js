@@ -1,6 +1,6 @@
 'use client';
 
-import { Input, Table } from 'antd';
+import { Image, Input, Table } from 'antd';
 import { Tooltip } from 'antd';
 import { ConfigProvider } from 'antd';
 import { Search } from 'lucide-react';
@@ -9,32 +9,43 @@ import { Eye } from 'lucide-react';
 import { UserX } from 'lucide-react';
 import { useState } from 'react';
 import { Filter } from 'lucide-react';
-import Image from 'next/image';
 import CustomConfirm from '@/components/CustomConfirm/CustomConfirm';
-import { message } from 'antd';
-import ProfileModal from '@/components/SharedModals/ProfileModal';
 import { Tag } from 'antd';
 import { useRouter } from 'next/navigation';
-
-// Dummy table Data
-const data = Array.from({ length: 50 }).map((_, inx) => ({
-  key: inx + 1,
-  name: 'Robert Fox',
-  userImg: userImage,
-  email: 'justina@gmail.com',
-  contact: '+1234567890',
-  date: '11 oct 24, 11.10PM',
-  status: 'Joined',
-}));
+import { useBlockUnblockUserMutation, useGetAllusersQuery } from '@/redux/api/userApi';
+import moment from 'moment';
+import toast from 'react-hot-toast';
 
 export default function AccDetailsTable() {
   const [searchText, setSearchText] = useState('');
-  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const router = useRouter();
+  // ------------------get all teachers from api--------------------->
+  const { data: teachers, isLoading } = useGetAllusersQuery({ limit: 10, page: 1, searchText });
+  const dataSource = teachers?.data?.data || [];
+  //-------------------- table Data==-------------------->
+  const data = dataSource?.map((item, inx) => ({
+    key: inx + 1,
+    id: item?._id,
+    name: item?.user?.name || 'N/A',
+    userImg: item?.user?.image,
+    email: item?.user?.email || 'N/A',
+    date: moment(item?.createdAt).format('ll'),
+    status: item?.isBlocked === true ? 'Blocked' : 'Active',
+  }));
+
+  // change status api call
+  const [blockUnblockUser] = useBlockUnblockUserMutation();
 
   // Block user handler
-  const handleBlockUser = () => {
-    message.success('User blocked successfully');
+  const handleBlockUser = async (id) => {
+    try {
+      const res = await blockUnblockUser(id).unwrap();
+      if (res?.success) {
+        toast.success(res?.message || 'User status changed successfully');
+      }
+    } catch (error) {
+      toast.error(error?.data?.message || 'Failed to change user status');
+    }
   };
 
   // ================== Table Columns ================
@@ -47,18 +58,38 @@ export default function AccDetailsTable() {
     {
       title: 'Name',
       dataIndex: 'name',
-      render: (value, record) => (
-        <div className="flex-center-start gap-x-2">
-          <Image
-            src={record.userImg}
-            alt="User avatar"
-            width={1200}
-            height={1200}
-            className="rounded-full w-10 h-auto aspect-square"
-          />
-          <p className="font-medium">{value}</p>
-        </div>
-      ),
+      render: (value, record) => {
+        // Helper function to validate URL
+        const isValidUrl = (url) => {
+          if (!url) return false;
+          return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
+        };
+
+        // Get the first letter of the name (uppercase)
+        const firstLetter = value ? value.charAt(0).toUpperCase() : '';
+
+        // Determine if the image is valid
+        const hasValidImage = isValidUrl(record?.userImg);
+
+        return (
+          <div className="flex-center-start gap-x-2">
+            {hasValidImage ? (
+              <Image
+                src={record?.userImg}
+                alt="User avatar"
+                width={40}
+                height={40}
+                className="rounded-full w-10 h-auto aspect-square"
+              />
+            ) : (
+              <div className="flex items-center justify-center rounded-full w-10 h-10 bg-[#67cccc] text-white text-lg font-medium">
+                {firstLetter}
+              </div>
+            )}
+            <p className="font-medium">{value}</p>
+          </div>
+        );
+      },
     },
     {
       title: 'Email',
@@ -75,32 +106,35 @@ export default function AccDetailsTable() {
 
       filters: [
         {
-          text: 'Joined',
-          value: 'Joined',
+          text: 'Active',
+          value: 'Active',
         },
         {
-          text: 'Service Provider',
-          value: 'serviceProvider',
+          text: 'Blocked',
+          value: 'Blocked',
         },
       ],
       filterIcon: () => (
         <Filter size={18} color="#fff" className="flex justify-start items-start" />
       ),
-      onFilter: (value, record) => record.accountType.indexOf(value) === 0,
+      onFilter: (value, record) => record.status.indexOf(value) === 0,
       render: (value) => (
-        <Tag color="cyan" className="!text-sm">
+        <Tag
+          color="cyan"
+          className={`!text-base font-semibold ${value === 'Blocked' ? '!text-red-500' : ''}`}
+        >
           {value}
         </Tag>
       ),
     },
     {
       title: 'Action',
-      render: () => (
+      render: (_, record) => (
         <div className="flex-center-start gap-x-3">
           <Tooltip title="Show Details">
             <button
               onClick={() => {
-                router.push('/admin/singleUserprofile');
+                router.push(`/admin/singleUserprofile?id=${record.id}`);
               }}
             >
               <Eye color="#1B70A6" size={22} />
@@ -109,12 +143,18 @@ export default function AccDetailsTable() {
 
           <Tooltip title="Block User">
             <CustomConfirm
-              title="Block User"
-              description="Are you sure to block this user?"
-              onConfirm={handleBlockUser}
+              title={record.status === 'Blocked' ? 'Unblock User' : 'Block User'}
+              description={`Are you sure to ${record.status === 'Blocked' ? 'Unblock' : 'Block'} this user?`}
+              onConfirm={() => {
+                handleBlockUser(record.id);
+              }}
             >
               <button>
-                <UserX color="#F16365" size={22} />
+                {record.status === 'Blocked' ? (
+                  <UserX color="#F16365" size={22} />
+                ) : (
+                  <UserX color="#1B70A6" size={22} />
+                )}
               </button>
             </CustomConfirm>
           </Tooltip>
@@ -146,6 +186,8 @@ export default function AccDetailsTable() {
         style={{ overflowX: 'auto' }}
         columns={columns}
         dataSource={data}
+        loading={isLoading}
+        bordered
         scroll={{ x: '100%' }}
       ></Table>
     </ConfigProvider>

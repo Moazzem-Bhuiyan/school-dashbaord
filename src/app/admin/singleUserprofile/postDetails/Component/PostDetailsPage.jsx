@@ -2,19 +2,51 @@
 
 import { ArrowLeft } from 'lucide-react';
 
-import { Avatar, Image } from 'antd';
-import { useState } from 'react';
+import { Avatar, Empty, Image } from 'antd';
+import { useEffect, useState } from 'react';
+import { useGetAssetByIdQuery } from '@/redux/api/assetsApi';
+import { useSearchParams } from 'next/navigation';
+import moment from 'moment';
+import { DNA } from 'react-loader-spinner';
+import NoImage from '@/assets/images/noImage.png';
 
 export default function PostDetailsPage() {
-  const [mainImage, setMainImage] = useState('/postimage.png');
-  const thumbnailImages = ['/postimage.png', '/postimage.png', '/postimage.png', '/postimage.png'];
+  const [mainImage, setMainImage] = useState(NoImage);
+
+  const searchParams = useSearchParams();
+  const postId = searchParams?.get('postId');
+  // get assest details from api here using postId from query params
+  const { data, isLoading } = useGetAssetByIdQuery(postId, { skip: !postId });
+  const asset = data?.data || {};
+  const user = data?.data?.teacher?.user || {};
+  const thumbnailImages = data?.data?.images?.length ? data?.data?.images[0] : '';
 
   const itemDetails = [
-    { label: 'Quantity:', value: '10 piece' },
-    { label: 'Material:', value: 'wood' },
-    { label: 'School:', value: 'SES-Smith' },
-    { label: 'Category:', value: 'Furniture' },
+    { label: 'Quantity:', value: asset?.quantity || 'N/A' },
+    { label: 'Material:', value: asset?.material || 'N/A' },
+    { label: 'Category:', value: asset?.category?.name || 'N/A' },
   ];
+
+  useEffect(() => {
+    if (thumbnailImages) {
+      setMainImage(thumbnailImages);
+    }
+  }, [thumbnailImages]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-6 rounded-xl bg-white shadow-lg min-h-screen min-w-[400px]">
+        <DNA
+          visible={true}
+          height="80"
+          width="80"
+          ariaLabel="dna-loading"
+          wrapperStyle={{}}
+          wrapperClass="dna-wrapper"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white rounded-lg shadow-xl">
@@ -38,19 +70,24 @@ export default function PostDetailsPage() {
             <div className="  overflow-auto">
               {/* Main Image */}
               <div className="">
-                <Image
-                  src={mainImage}
-                  alt="Main item image"
-                  fill
-                  className="object-cover transition-transform duration-300"
-                  // sizes="(max-width: 768px) 100vw, 66vw"
-                  priority
-                />
+                {mainImage?.length > 0 ? (
+                  <Image
+                    src={mainImage || NoImage}
+                    alt="Main item image"
+                    height={400}
+                    width={600}
+                    className="object-cover transition-transform duration-300"
+                    sizes="(max-width: 768px) 100vw, 66vw"
+                    priority
+                  />
+                ) : (
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No image available" />
+                )}
               </div>
 
               {/* Thumbnails */}
               <div className="grid grid-cols-4 gap-3 p-4">
-                {thumbnailImages.map((src, index) => (
+                {data?.data?.images.map((src, index) => (
                   <button
                     key={index}
                     className="relative aspect-square rounded-lg overflow-hidden hover:opacity-90 transition-all duration-200 border-2 border-transparent hover:border-blue-500"
@@ -76,30 +113,22 @@ export default function PostDetailsPage() {
               <div className="flex items-center justify-between border-b pb-4">
                 <div className="flex items-center gap-3">
                   <Avatar size={48} className="bg-blue-500">
-                    AR
+                    {user?.name?.charAt(0)}
                   </Avatar>
                   <div>
-                    <div className="font-semibold text-gray-900">Alyse Roe</div>
+                    <div className="font-semibold text-gray-900">{user?.name || 'N/A'}</div>
                     <div className="text-sm text-gray-500">Posted by</div>
                   </div>
                 </div>
-                <span className="text-sm text-gray-500">May 18, 2025</span>
+                <span className="text-sm text-gray-500">{moment(asset?.createdAt).fromNow()}</span>
               </div>
 
               {/* Title */}
-              <h2 className="text-2xl font-bold text-gray-900">Sofa Set</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{asset?.name}</h2>
 
               {/* Description */}
               <div className="space-y-4">
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in
-                  a piece of classical Latin literature from 45 BC, making it over 2000 years old.
-                </p>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum
-                  passage, and going through the cites of the word in classical literature,
-                  discovered the undoubtable source.
-                </p>
+                <p className="text-gray-600 text-sm leading-relaxed">{asset?.description}</p>
               </div>
 
               {/* Other Details */}

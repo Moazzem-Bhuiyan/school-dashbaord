@@ -4,37 +4,70 @@ import { Input, Table } from 'antd';
 import { Tooltip } from 'antd';
 import { ConfigProvider } from 'antd';
 import { Search } from 'lucide-react';
-import userImage from '@/assets/images/user-avatar-lg.png';
-import { Eye } from 'lucide-react';
-import { UserX } from 'lucide-react';
 import { useState } from 'react';
-import { Filter } from 'lucide-react';
 import Image from 'next/image';
 import CustomConfirm from '@/components/CustomConfirm/CustomConfirm';
 import { message } from 'antd';
-import ProfileModal from '@/components/SharedModals/ProfileModal';
-import { Tag } from 'antd';
 import { useRouter } from 'next/navigation';
-
-// Dummy table Data
-const data = Array.from({ length: 50 }).map((_, inx) => ({
-  key: inx + 1,
-  name: 'Robert Fox',
-  userImg: userImage,
-  email: 'justina@gmail.com',
-  contact: '+1234567890',
-  date: '11 oct 24, 11.10PM',
-  status: 'Joined',
-}));
+import { useChangeAssetStatusMutation, useGetAssetsQuery } from '@/redux/api/assetsApi';
+import moment from 'moment';
+import toast from 'react-hot-toast';
+import { selectToken } from '@/redux/features/authSlice';
+import { useSelector } from 'react-redux';
 
 export default function PostApprovalTable() {
   const [searchText, setSearchText] = useState('');
-  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const router = useRouter();
+  const token = useSelector(selectToken);
 
-  // Block user handler
-  const handleBlockUser = () => {
-    message.success('User blocked successfully');
+  // get pending assest from api
+  const { data: pendingAssets } = useGetAssetsQuery(undefined, { skip: !token });
+
+  const assets = pendingAssets?.data?.data;
+
+  // Dummy table Data
+  const data = assets?.map((item, inx) => ({
+    key: inx + 1,
+    id: item?._id,
+    name: item?.teacher?.user?.name || 'N/A',
+    userImg: item?.teacher?.user?.image,
+    email: item?.teacher?.user?.email || 'N/A',
+    date: moment(item?.createdAt).format('lll'),
+    teacherId: item?.teacher?._id,
+  }));
+
+  // change assest satatus API call
+  const [changeAssetStatus] = useChangeAssetStatusMutation(
+    {
+      fixedCacheKey: 'changeAssetStatus',
+    },
+    { fixedCacheKey: 'changeAssetStatus' }
+  );
+
+  // ================= Table Handlers ================
+  const handleDenyPost = async (values) => {
+    try {
+      const formData = new FormData();
+      formData.append('payload', JSON.stringify({ status: 'denied' }));
+      const res = await changeAssetStatus({ id: values.id, formData }).unwrap();
+      if (res.success) {
+        toast.success('Post denied successfully');
+      }
+    } catch (error) {
+      toast.error(error?.data?.message || 'Failed to deny post');
+    }
+  };
+  const handleApprovePost = async (values) => {
+    try {
+      const formData = new FormData();
+      formData.append('payload', JSON.stringify({ status: 'approved' }));
+      const res = await changeAssetStatus({ id: values.id, formData }).unwrap();
+      if (res.success) {
+        toast.success('Post approved successfully');
+      }
+    } catch (error) {
+      toast.error(error?.data?.message || 'Failed to approve post');
+    }
   };
 
   // ================== Table Columns ================
@@ -61,11 +94,13 @@ export default function PostApprovalTable() {
     { title: 'Date', dataIndex: 'date' },
     {
       title: 'Post',
-      render: () => (
+      render: (_, record) => (
         <div>
           <button
             onClick={() => {
-              router.push('/admin/singleUserprofile/postDetails');
+              router.push(
+                `/admin/singleUserprofile/postDetails?id=${record?.teacherId}&postId=${record?.id}`
+              );
             }}
             className="text-primary-blue border rounded-lg px-3 py-1 border-[#1B70A6] shadow-md"
           >
@@ -76,13 +111,15 @@ export default function PostApprovalTable() {
     },
     {
       title: 'Action',
-      render: () => (
+      render: (_, record) => (
         <div className="flex-center-start gap-x-3">
           <Tooltip title="Show Details">
             <CustomConfirm
               title="Approve Post"
               description="Are you sure to approve this post?"
-              onConfirm={handleBlockUser}
+              onConfirm={() => {
+                handleApprovePost(record);
+              }}
             >
               <button
                 className="bg-[#1B70A6] border text-white rounded-lg px-3 py-1 border-[#1B70A6] shadow-md"
@@ -97,7 +134,9 @@ export default function PostApprovalTable() {
             <CustomConfirm
               title=" Deny Post"
               description="Are you sure to deny this post?"
-              onConfirm={handleBlockUser}
+              onConfirm={() => {
+                handleDenyPost(record);
+              }}
             >
               <button className="bg-[#F16365] border text-white rounded-lg px-3 py-1 border-[#F16365] shadow-md">
                 Deny

@@ -6,18 +6,39 @@ import { useState } from 'react';
 import CustomConfirm from '@/components/CustomConfirm/CustomConfirm';
 import CreateCategoryModal from './CreateCategoryModal';
 import EditCategoryModal from './EditCategoryModal';
-
-// Dummy table data
-const data = Array.from({ length: 5 }).map((_, inx) => ({
-  key: inx + 1,
-  name: 'Wood',
-  createdAt: '11 oct 24, 11.10PM',
-}));
+import { useDeleteCategoryMutation, useGetCategoriesQuery } from '@/redux/api/categoriesApi';
+import moment from 'moment';
+import toast from 'react-hot-toast';
 
 export default function CategoryContainer() {
   const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
   const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
+  // get useGetCategoriesQuery data------------------->
+  const { data: categoriesData, isLoading } = useGetCategoriesQuery();
+
+  //  table data
+  const data = categoriesData?.data?.data?.map((items, inx) => ({
+    key: inx + 1,
+    name: items?.name,
+    createdAt: moment(items?.createdAt).format('ll'),
+    id: items?._id,
+  }));
+
+  // delete category api handeler
+  const [deleteCategory] = useDeleteCategoryMutation();
+
+  const handleDelete = async (id) => {
+    try {
+      const res = await deleteCategory(id).unwrap();
+      if (res?.success) {
+        toast.success(res?.message || 'Category deleted successfully');
+      }
+    } catch (error) {
+      toast.error(error?.data?.message || 'Failed to delete category');
+    }
+  };
   // ================== Table Columns ================
   const columns = [
     {
@@ -51,7 +72,7 @@ export default function CategoryContainer() {
             <CustomConfirm
               title="Delete This category"
               description="Are you sure to delete this category?"
-              onConfirm={() => handleDelete(record?._id)}
+              onConfirm={() => handleDelete(record?.id)}
             >
               <button>
                 <Trash color="#F16365" size={22} />
@@ -80,15 +101,16 @@ export default function CategoryContainer() {
         style={{ overflowX: 'auto', marginTop: '30px' }}
         columns={columns}
         dataSource={data}
+        bordered
         scroll={{ x: '100%' }}
-        // loading={isLoading}
-        // pagination={{
-        //   current: currentPage,
-        //   onChange: (page) => setCurrentPage(page),
-        //   pageSize: 10,
-        //   total: jobTitle?.meta?.total,
-        //   showTotal: (total) => `Total ${total} categories`,
-        // }}
+        loading={isLoading}
+        pagination={{
+          current: currentPage,
+          onChange: (page) => setCurrentPage(page),
+          pageSize: 10,
+          total: categoriesData?.meta?.total,
+          showTotal: (total) => `Total ${total} categories`,
+        }}
       ></Table>
 
       {/* Create Category Modal */}
