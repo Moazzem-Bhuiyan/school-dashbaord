@@ -11,8 +11,8 @@ const districtsApi = baseApi.injectEndpoints({
       invalidatesTags: ['Districts'],
     }),
     getDistricts: build.query({
-      query: () => ({
-        url: '/districts',
+      query: ({ limit, page, searchText }) => ({
+        url: `/districts?limit=${limit}&page=${page}&searchTerm=${searchText}`,
         method: 'GET',
       }),
       providesTags: ['Districts'],

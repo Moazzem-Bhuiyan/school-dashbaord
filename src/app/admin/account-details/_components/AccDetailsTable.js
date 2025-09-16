@@ -4,7 +4,6 @@ import { Image, Input, Table } from 'antd';
 import { Tooltip } from 'antd';
 import { ConfigProvider } from 'antd';
 import { Search } from 'lucide-react';
-import userImage from '@/assets/images/user-avatar-lg.png';
 import { Eye } from 'lucide-react';
 import { UserX } from 'lucide-react';
 import { useState } from 'react';
@@ -18,9 +17,14 @@ import toast from 'react-hot-toast';
 
 export default function AccDetailsTable() {
   const [searchText, setSearchText] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
   // ------------------get all teachers from api--------------------->
-  const { data: teachers, isLoading } = useGetAllusersQuery({ limit: 10, page: 1, searchText });
+  const { data: teachers, isLoading } = useGetAllusersQuery({
+    limit: 10,
+    page: currentPage,
+    searchText,
+  });
   const dataSource = teachers?.data?.data || [];
   //-------------------- table Data==-------------------->
   const data = dataSource?.map((item, inx) => ({
@@ -188,6 +192,12 @@ export default function AccDetailsTable() {
         dataSource={data}
         loading={isLoading}
         bordered
+        pagination={{
+          current: currentPage,
+          total: teachers?.data?.meta?.total,
+          showTotal: (total) => `Total ${total} users`,
+          onChange: (page) => setCurrentPage(page),
+        }}
         scroll={{ x: '100%' }}
       ></Table>
     </ConfigProvider>

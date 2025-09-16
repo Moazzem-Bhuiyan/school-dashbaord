@@ -1,7 +1,7 @@
 'use client';
 import CustomConfirm from '@/components/CustomConfirm/CustomConfirm';
-import { Button, Table, Tag, Tooltip } from 'antd';
-import { Edit, Filter, PlusCircle, Trash } from 'lucide-react';
+import { Button, Input, Table, Tag, Tooltip } from 'antd';
+import { Edit, Filter, PlusCircle, Search, Trash } from 'lucide-react';
 import Image from 'next/image';
 import React, { useState } from 'react';
 import AddDistricModal from './AddDistricModal';
@@ -15,9 +15,14 @@ const ManageDristricContainer = () => {
   const [editopen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchText, setSearchText] = useState('');
 
   // get dristric data from api
-  const { data: dristric, isLoading } = useGetDistrictsQuery();
+  const { data: dristric, isLoading } = useGetDistrictsQuery({
+    limit: 10,
+    page: currentPage,
+    searchText,
+  });
 
   // Dummy table data
   const data = dristric?.data?.data.map((item, inx) => ({
@@ -156,6 +161,16 @@ const ManageDristricContainer = () => {
       >
         Add District
       </Button>
+
+      <div className="w-1/3 ml-auto gap-x-5 mb-3 mt-5">
+        <Input
+          placeholder="Search by name "
+          prefix={<Search className="mr-2 text-black" size={20} />}
+          className="h-11 !border !rounded-lg !text-base"
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+      </div>
+
       <Table
         style={{ overflowX: 'auto', marginTop: '30px' }}
         columns={columns}
@@ -167,7 +182,7 @@ const ManageDristricContainer = () => {
           current: currentPage,
           onChange: (page) => setCurrentPage(page),
           pageSize: 10,
-          total: dristric?.meta?.total,
+          total: dristric?.data?.meta?.total,
           showTotal: (total) => `Total ${total} dristric`,
         }}
       ></Table>

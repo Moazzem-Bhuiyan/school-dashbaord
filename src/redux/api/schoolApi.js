@@ -11,8 +11,8 @@ const schoolApi = baseApi.injectEndpoints({
       invalidatesTags: ['schools'],
     }),
     getAllSchools: builder.query({
-      query: () => ({
-        url: '/schools',
+      query: ({ limit, page, searchText }) => ({
+        url: `/schools?limit=${limit}&page=${page}&searchTerm=${searchText}`,
         method: 'GET',
       }),
       providesTags: ['schools'],

@@ -1,7 +1,7 @@
 'use client';
 
-import { Button, Table, Tooltip } from 'antd';
-import { PlusCircle, Trash } from 'lucide-react';
+import { Button, Input, Table, Tooltip } from 'antd';
+import { PlusCircle, Search, Trash } from 'lucide-react';
 import { useState } from 'react';
 import CustomConfirm from '@/components/CustomConfirm/CustomConfirm';
 import AddSchoolModal from './AddSchoolModal';
@@ -10,11 +10,16 @@ import moment from 'moment';
 import toast from 'react-hot-toast';
 
 export default function ManageSchoolContainer() {
+  const [searchText, setSearchText] = useState('');
   const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   // get all schools
-  const { data: schoolsData, isLoading } = useGetAllSchoolsQuery();
+  const { data: schoolsData, isLoading } = useGetAllSchoolsQuery({
+    limit: 10,
+    page: currentPage,
+    searchText,
+  });
 
   // Dummy table data
   const data = schoolsData?.data?.data?.map((item, inx) => ({
@@ -117,6 +122,14 @@ export default function ManageSchoolContainer() {
       >
         Add School
       </Button>
+      <div className="w-1/3 ml-auto gap-x-5 mb-3 mt-5">
+        <Input
+          placeholder="Search by name or email"
+          prefix={<Search className="mr-2 text-black" size={20} />}
+          className="h-11 !border !rounded-lg !text-base"
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+      </div>
       <Table
         style={{ overflowX: 'auto', marginTop: '30px' }}
         columns={columns}
@@ -128,7 +141,7 @@ export default function ManageSchoolContainer() {
           current: currentPage,
           onChange: (page) => setCurrentPage(page),
           pageSize: 10,
-          total: schoolsData?.meta?.total,
+          total: schoolsData?.data?.meta?.total,
           showTotal: (total) => `Total ${total} categories`,
         }}
       ></Table>

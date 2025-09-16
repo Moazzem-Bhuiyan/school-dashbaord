@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import PostCard from './post-card';
 import { useGetUserByIdQuery } from '@/redux/api/userApi';
 import { DNA } from 'react-loader-spinner';
-import { Empty } from 'antd';
+import { Empty, Skeleton } from 'antd';
 
 export default function SingleUserProfileDetails() {
   // get user id from search params
@@ -15,15 +15,9 @@ export default function SingleUserProfileDetails() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-6 rounded-xl bg-white shadow-lg min-h-screen min-w-[400px]">
-        <DNA
-          visible={true}
-          height="80"
-          width="80"
-          ariaLabel="dna-loading"
-          wrapperStyle={{}}
-          wrapperClass="dna-wrapper"
-        />
+      <div className="flex flex-col space-y-5  p-6 rounded-xl bg-white shadow-lg min-h-screen min-w-[400px]">
+        <Skeleton active />;
+        <Skeleton />
       </div>
     );
   }
@@ -32,7 +26,6 @@ export default function SingleUserProfileDetails() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg shadow-xl">
-      {/* Left Side - User Account Info information in layout page */}{' '}
       {/* Right Side - User Posts */}
       <div className="flex-1 p-6">
         <div className="max-w-5xl mx-auto">

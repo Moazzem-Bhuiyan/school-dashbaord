@@ -1,9 +1,9 @@
 'use client';
 
 import { useGetUserByIdQuery } from '@/redux/api/userApi';
-import { Image } from 'antd';
+import { Avatar, Image, Skeleton } from 'antd';
+import { UserOutlined } from '@ant-design/icons';
 import { useSearchParams } from 'next/navigation';
-import { DNA } from 'react-loader-spinner';
 
 export default function UserAccount() {
   // get user id from search params
@@ -15,18 +15,14 @@ export default function UserAccount() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-6 rounded-xl bg-white shadow-lg min-h-screen min-w-[400px]">
-        <DNA
-          visible={true}
-          height="80"
-          width="80"
-          ariaLabel="dna-loading"
-          wrapperStyle={{}}
-          wrapperClass="dna-wrapper"
-        />
+      <div className="flex flex-col space-y-5  p-6 rounded-xl bg-white shadow-lg min-h-screen min-w-[400px]">
+        <Skeleton />
+        <Skeleton />
+        <Skeleton />
       </div>
     );
   }
+
   const teacher = teacherdata?.data?.teacher?.user || {};
   const userData = {
     firstName: teacher?.name || 'N/A',
@@ -46,13 +42,20 @@ export default function UserAccount() {
       <div className="text-center mb-8">
         <div className="relative inline-block">
           <div className="w-40 h-40 rounded-full border-4 border-blue-200 overflow-hidden  bg-gray-100 shadow-lg">
-            <Image
-              src={teacher?.image || '/placeholder.svg'}
-              alt="User Avatar"
-              width={1200}
-              height={1200}
-              className="!w-40 !h-40 object-cover"
-            />
+            {teacher?.image ? (
+              <Image
+                src={teacher?.image}
+                alt={teacher?.name || 'N/A'}
+                width={1200}
+                height={1200}
+                className="!w-40 !h-40 object-cover"
+              />
+            ) : (
+              <h1 className="!w-40 !h-40 object-cover text-5xl text-center items-center flex justify-center font-bold ">
+                {teacher?.name?.charAt(0) || 'N/A'}
+                {teacher?.name?.charAt(1) || 'N/A'}
+              </h1>
+            )}
           </div>
         </div>
       </div>

@@ -9,10 +9,8 @@ import { UserX } from 'lucide-react';
 import { useState } from 'react';
 import { Filter } from 'lucide-react';
 import CustomConfirm from '@/components/CustomConfirm/CustomConfirm';
-import { message } from 'antd';
 import ProfileModal from '@/components/SharedModals/ProfileModal';
 import { Tag } from 'antd';
-import { useRouter } from 'next/navigation';
 import { useGetPrinciplesQuery } from '@/redux/api/principleApi';
 import moment from 'moment';
 import { useBlockUnblockUserMutation } from '@/redux/api/userApi';
@@ -21,11 +19,14 @@ export default function PrincipalTable() {
   const [searchText, setSearchText] = useState('');
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [selectedPrincipal, setSelectedPrincipal] = useState(null);
-
+  const [currentPage, setCurrentPage] = useState(1);
   // get all principals from api
-  const { data: principals, isLoading } = useGetPrinciplesQuery();
+  const { data: principals, isLoading } = useGetPrinciplesQuery({
+    limit: 10,
+    page: currentPage,
+    searchText,
+  });
   const principalsData = principals?.data?.data || [];
-
   // Dummy table Data
   const data = principalsData?.map((items, inx) => ({
     key: inx + 1,
@@ -52,7 +53,6 @@ export default function PrincipalTable() {
       toast.error(error?.data?.message || 'Failed to change user status');
     }
   };
-
   // ================== Table Columns ================
   const columns = [
     { title: 'Serial', dataIndex: 'key', render: (value) => `#${value}` },
@@ -173,6 +173,12 @@ export default function PrincipalTable() {
         loading={isLoading}
         bordered
         scroll={{ x: '100%' }}
+        pagination={{
+          current: currentPage,
+          total: principals?.data?.meta?.total,
+          showTotal: (total) => `Total ${total} Principals`,
+          onChange: (page) => setCurrentPage(page),
+        }}
       ></Table>
 
       <ProfileModal

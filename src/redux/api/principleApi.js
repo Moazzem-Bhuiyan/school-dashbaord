@@ -3,8 +3,8 @@ const { baseApi } = require('./baseApi');
 const principleApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     getPrinciples: build.query({
-      query: () => ({
-        url: '/principals',
+      query: ({ limit, page, searchText }) => ({
+        url: `/principals?limit=${limit}&page=${page}&searchTerm=${searchText}`,
         method: 'GET',
       }),
       providesTags: ['Principles', 'user'],

@@ -11,8 +11,8 @@ const categoriesApi = baseApi.injectEndpoints({
       invalidatesTags: ['categories'],
     }),
     getCategories: build.query({
-      query: () => ({
-        url: '/categories',
+      query: ({ limit, page, searchText }) => ({
+        url: `/categories?limit=${limit}&page=${page}&searchTerm=${searchText}`,
         method: 'GET',
       }),
       providesTags: ['categories'],

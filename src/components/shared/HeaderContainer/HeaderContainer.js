@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from 'antd';
+import { Badge, Button } from 'antd';
 import { Bell } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -8,11 +8,20 @@ import userAvatar from '@/assets/images/user-avatar-lg.png';
 import { usePathname } from 'next/navigation';
 import { Layout } from 'antd';
 import { AlignJustify } from 'lucide-react';
+import { useGetAdminQuery } from '@/redux/api/admin';
+import { useGetUnreadNotificationQuery } from '@/redux/api/notificationApi';
 const { Header } = Layout;
 
 export default function HeaderContainer({ collapsed, setCollapsed }) {
   const pathname = usePathname();
   const navbarTitle = pathname.split('/admin')[1];
+  // get admin data
+  const { data } = useGetAdminQuery();
+  const admin = data?.data || {};
+
+  // get unread notifications
+  const { data: notification } = useGetUnreadNotificationQuery();
+  const notifications = notification?.data || [];
 
   return (
     <Header
@@ -47,10 +56,8 @@ export default function HeaderContainer({ collapsed, setCollapsed }) {
         </button> */}
 
         <Link href="/admin/notification" className="!leading-none relative">
-          {/* Notification dot indicator */}
-          <div className="bg-[#000000] absolute -top-1.5 -right-1 size-3 rounded-full" />
-
-          <Bell fill="#1C1B1F" stroke="#1C1B1F" size={22} />
+          <Badge count={notifications || 0} overflowCount={10}></Badge>
+          <Bell fill="#1C1B1F" stroke="#1C1B1F" size={18} />
         </Link>
 
         {/* User */}
@@ -65,7 +72,7 @@ export default function HeaderContainer({ collapsed, setCollapsed }) {
             height={52}
             className="rounded-full border-2 p-0.5 border-primary-green group-hover:border"
           />
-          <h4 className="text-lg font-semibold">Moazzem </h4>
+          <h4 className="text-lg font-semibold">{admin?.name || 'Admin'} </h4>
         </Link>
       </div>
     </Header>

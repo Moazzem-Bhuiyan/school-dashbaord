@@ -1,7 +1,7 @@
 'use client';
 
-import { Button, Table, Tooltip } from 'antd';
-import { PlusCircle, Trash } from 'lucide-react';
+import { Button, Input, Table, Tooltip } from 'antd';
+import { PlusCircle, Search, Trash } from 'lucide-react';
 import { useState } from 'react';
 import CustomConfirm from '@/components/CustomConfirm/CustomConfirm';
 import CreateCategoryModal from './CreateCategoryModal';
@@ -14,9 +14,14 @@ export default function CategoryContainer() {
   const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
   const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchText, setSearchText] = useState('');
 
   // get useGetCategoriesQuery data------------------->
-  const { data: categoriesData, isLoading } = useGetCategoriesQuery();
+  const { data: categoriesData, isLoading } = useGetCategoriesQuery({
+    limit: 10,
+    page: currentPage,
+    searchText,
+  });
 
   //  table data
   const data = categoriesData?.data?.data?.map((items, inx) => ({
@@ -97,6 +102,16 @@ export default function CategoryContainer() {
       >
         Create Category
       </Button>
+
+      <div className="w-1/3 ml-auto gap-x-5 mb-3 mt-5">
+        <Input
+          placeholder="Search by name "
+          prefix={<Search className="mr-2 text-black" size={20} />}
+          className="h-11 !border !rounded-lg !text-base"
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+      </div>
+
       <Table
         style={{ overflowX: 'auto', marginTop: '30px' }}
         columns={columns}
@@ -108,7 +123,7 @@ export default function CategoryContainer() {
           current: currentPage,
           onChange: (page) => setCurrentPage(page),
           pageSize: 10,
-          total: categoriesData?.meta?.total,
+          total: categoriesData?.data?.meta?.total,
           showTotal: (total) => `Total ${total} categories`,
         }}
       ></Table>

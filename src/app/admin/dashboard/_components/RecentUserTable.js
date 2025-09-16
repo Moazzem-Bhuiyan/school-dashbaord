@@ -2,9 +2,7 @@
 
 import { ConfigProvider, Tag } from 'antd';
 import { Table } from 'antd';
-
 import Image from 'next/image';
-import userImage from '@/assets/images/user-avatar.png';
 import { useState } from 'react';
 import ProfileModal from '@/components/SharedModals/ProfileModal';
 import { Eye, Filter } from 'lucide-react';
@@ -14,13 +12,9 @@ import moment from 'moment';
 const RecentUserTable = () => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-
   // get all user from api here
-
   const { data: teachers, isLoading } = useGetAllusersQuery({ limit: 4, page: 1, searchText: '' });
-
   const dataSource = teachers?.data?.data || [];
-
   // table Data
   const data = dataSource?.map((item, inx) => ({
     key: inx + 1,

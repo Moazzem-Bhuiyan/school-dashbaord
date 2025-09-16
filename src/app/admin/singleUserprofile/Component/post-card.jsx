@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 export default function PostCard({ post, user, userId }) {
-  console.log('single post------------------------------->', post);
   const router = useRouter();
   return (
     <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">

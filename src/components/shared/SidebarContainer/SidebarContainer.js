@@ -23,7 +23,7 @@ import toast from 'react-hot-toast';
 
 const SidebarContainer = ({ collapsed }) => {
   const dispatch = useDispatch();
-  const router = useRouter(); 
+  const router = useRouter();
   const token = useSelector(selectToken);
   const storedRole = token ? jwtDecode(token) : null; // Handle null token
   const [role, setRole] = useState(storedRole);

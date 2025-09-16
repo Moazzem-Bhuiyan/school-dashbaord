@@ -4,7 +4,7 @@ const notificationApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getMyNotification: builder.query({
       query: (query) => ({
-        url: `/notification/my-notification`,
+        url: `/notifications`,
         method: 'GET',
         params: query,
       }),
@@ -18,24 +18,33 @@ const notificationApi = baseApi.injectEndpoints({
     }),
     markAsRead: builder.mutation({
       query: () => ({
-        url: `/notification`,
+        url: `/notifications/mark-all-as-read`,
         method: 'PATCH',
       }),
       invalidatesTags: ['notification'],
     }),
     deleteNotification: builder.mutation({
       query: () => ({
-        url: `/notification`,
+        url: `/notifications`,
         method: 'DELETE',
       }),
       invalidatesTags: ['notification'],
     }),
     deleteSingleNotification: builder.mutation({
       query: (id) => ({
-        url: `/notification/${id}`,
+        url: `/notifications/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['notification'],
+    }),
+
+    // get unread notification
+    getUnreadNotification: builder.query({
+      query: () => ({
+        url: `/notifications/unread-count`,
+        method: 'GET',
+      }),
+      providesTags: ['notification'],
     }),
   }),
 });
@@ -45,4 +54,5 @@ export const {
   useMarkAsReadMutation,
   useDeleteNotificationMutation,
   useDeleteSingleNotificationMutation,
+  useGetUnreadNotificationQuery,
 } = notificationApi;
